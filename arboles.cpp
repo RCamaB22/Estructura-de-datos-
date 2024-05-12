@@ -1,3 +1,4 @@
+ruben alberto camacho y pedro manyoma.
 #include<iostream>
 #include<stdlib.h>
 #include<malloc.h>
