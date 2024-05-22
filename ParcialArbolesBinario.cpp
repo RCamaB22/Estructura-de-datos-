@@ -7,7 +7,7 @@ using namespace std;
 
 struct Estudiante {
     unsigned long long codigo;
-    unsigned long long fecha; // formato AAAAMMDD
+    unsigned long long fecha;
     unsigned long long doc;
     unsigned long long genero;
     char nombre[150];
