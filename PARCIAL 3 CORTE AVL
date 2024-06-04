@@ -1,0 +1,317 @@
+#include <iostream>
+#include <string>
+
+
+using namespace std;
+
+
+struct Pasajero {
+    string nombre;
+};
+
+// Nodo del AVL que representa un viaje
+struct NodoAVL {
+    string id;
+    string matricula;
+    string nombreEmbarcacion;
+    string destino;
+    int capacidad;
+    double precio;
+    int dia, mes, anio;
+    queue<Pasajero> pasajeros;
+    int altura;
+    NodoAVL* izquierda;
+    NodoAVL* derecha;
+
+    NodoAVL(string id, string matricula, string nombreEmbarcacion, string destino, int capacidad, double precio, int dia, int mes, int anio)
+        : id(id), matricula(matricula), nombreEmbarcacion(nombreEmbarcacion), destino(destino), capacidad(capacidad), precio(precio), dia(dia), mes(mes), anio(anio), altura(1), izquierda(NULL), derecha(NULL) {}
+};
+
+class ArbolAVL {
+private:
+    NodoAVL* raiz;
+
+    int altura(NodoAVL* nodo) {
+        return nodo ? nodo->altura : 0;
+    }
+
+    int obtenerBalance(NodoAVL* nodo) {
+        return nodo ? altura(nodo->izquierda) - altura(nodo->derecha) : 0;
+    }
+
+    NodoAVL* rotacionDerecha(NodoAVL* y) {
+        NodoAVL* x = y->izquierda;
+        NodoAVL* T2 = x->derecha;
+
+        x->derecha = y;
+        y->izquierda = T2;
+
+        y->altura = max(altura(y->izquierda), altura(y->derecha)) + 1;
+        x->altura = max(altura(x->izquierda), altura(x->derecha)) + 1;
+
+        return;
+    }
+
+    NodoAVL* rotacionIzquierda(NodoAVL* x) {
+        NodoAVL* y = x->derecha;
+        NodoAVL* T2 = y->izquierda;
+
+        y->izquierda = x;
+        x->derecha = T2;
+
+        x->altura = max(altura(x->izquierda), altura(x->derecha)) + 1;
+        y->altura = max(altura(y->izquierda), altura(y->derecha)) + 1;
+
+        return;
+    }
+
+    NodoAVL* insertar(NodoAVL* nodo, NodoAVL* nuevoNodo) {
+        if (!nodo) return nuevoNodo;
+
+        if (nuevoNodo->id < nodo->id)
+            nodo->izquierda = insertar(nodo->izquierda, nuevoNodo);
+        else if (nuevoNodo->id > nodo->id)
+            nodo->derecha = insertar(nodo->derecha, nuevoNodo);
+        else
+            return nodo;
+
+        nodo->altura = max(altura(nodo->izquierda), altura(nodo->derecha)) + 1;
+
+        int balance = obtenerBalance(nodo);
+
+        if (balance > 1 && nuevoNodo->id < nodo->izquierda->id)
+            return rotacionDerecha(nodo);
+
+        if (balance < -1 && nuevoNodo->id > nodo->derecha->id)
+            return rotacionIzquierda(nodo);
+
+        if (balance > 1 && nuevoNodo->id > nodo->izquierda->id) {
+            nodo->izquierda = rotacionIzquierda(nodo->izquierda);
+            return rotacionDerecha(nodo);
+        }
+
+        if (balance < -1 && nuevoNodo->id < nodo->derecha->id) {
+            nodo->derecha = rotacionDerecha(nodo->derecha);
+            return rotacionIzquierda(nodo);
+        }
+
+        return;
+    }
+
+    NodoAVL* nodoMenorValor(NodoAVL* nodo) {
+        NodoAVL* actual = nodo;
+        while (actual->izquierda != NULL)
+            actual = actual->izquierda;
+        return actual;
+    }
+
+    NodoAVL* eliminarNodo(NodoAVL* raiz, string id) {
+        if (!raiz) return raiz;
+
+        if (id < raiz->id)
+            raiz->izquierda = eliminarNodo(raiz->izquierda, id);
+        else if (id > raiz->id)
+            raiz->derecha = eliminarNodo(raiz->derecha, id);
+        else {
+            if (!raiz->izquierda || !raiz->derecha) {
+                NodoAVL* temp = raiz->izquierda ? raiz->izquierda : raiz->derecha;
+                if (!temp) {
+                    temp = raiz;
+                    raiz = NULL;
+                } else
+                    *raiz = *temp;
+                delete temp;
+            } else {
+                NodoAVL* temp = nodoMenorValor(raiz->derecha);
+                raiz->id = temp->id;
+                raiz->derecha = eliminarNodo(raiz->derecha, temp->id);
+            }
+        }
+
+        if (!raiz) return raiz;
+
+        raiz->altura = max(altura(raiz->izquierda), altura(raiz->derecha)) + 1;
+
+        int balance = obtenerBalance(raiz);
+
+        if (balance > 1 && obtenerBalance(raiz->izquierda) >= 0)
+            return rotacionDerecha(raiz);
+
+        if (balance > 1 && obtenerBalance(raiz->izquierda) < 0) {
+            raiz->izquierda = rotacionIzquierda(raiz->izquierda);
+            return rotacionDerecha(raiz);
+        }
+
+        if (balance < -1 && obtenerBalance(raiz->derecha) <= 0)
+            return rotacionIzquierda(raiz);
+
+        if (balance < -1 && obtenerBalance(raiz->derecha) > 0) {
+            raiz->derecha = rotacionDerecha(raiz->derecha);
+            return rotacionIzquierda(raiz);
+        }
+
+        return raiz;
+    }
+
+    void enOrden(NodoAVL* raiz) {
+        if (raiz != NULL) {
+            enOrden(raiz->izquierda);
+            cout << "ID: " << raiz->id << ", Embarcación: " << raiz->nombreEmbarcacion << ", Destino: " << raiz->destino << ", Fecha: " << raiz->dia << "/" << raiz->mes << "/" << raiz->anio << ", Precio: " << fixed << setprecision(2) << raiz->precio << ", Capacidad: " << raiz->capacidad << endl;
+            enOrden(raiz->derecha);
+        }
+    }
+
+    NodoAVL* buscar(NodoAVL* raiz, string id) {
+        if (raiz == NULL || raiz->id == id)
+            return raiz;
+
+        if (raiz->id < id)
+            return buscar(raiz->derecha, id);
+
+        return buscar(raiz->izquierda, id);
+    }
+
+    // Función para generar el identificador único del viaje
+    string generarId(string matricula, int anio, int mes, int dia) {
+        return matricula.substr(0, 2) + to_string(anio) + (mes < 10 ? "0" : "") + to_string(mes) + (dia < 10 ? "0" : "") + to_string(dia);
+    }
+
+public:
+    ArbolAVL() : raiz(NULL) {}
+
+    void registrarViaje() {
+        string matricula, nombreEmbarcacion, destino;
+        int capacidad, dia, mes, anio;
+        double precio;
+
+        cout << "Ingrese la matrícula de la embarcación: ";
+        getline(cin, matricula);
+        cout << "Ingrese el nombre de la embarcación: ";
+        getline(cin, nombreEmbarcacion);
+        cout << "Ingrese el destino del viaje: ";
+        getline(cin, destino);
+        cout << "Ingrese la capacidad de la embarcación: ";
+        cin >> capacidad;
+        cout << "Ingrese el precio del viaje: ";
+        cin >> precio;
+        cout << "Ingrese el día del viaje: ";
+        cin >> dia;
+        cout << "Ingrese el mes del viaje: ";
+        cin >> mes;
+        cout << "Ingrese el año del viaje: ";
+        cin >> anio;
+        cin.ignore(); 
+
+        string id = generarId(matricula, anio, mes, dia);
+        NodoAVL* nuevoNodo = new NodoAVL(id, matricula, nombreEmbarcacion, destino, capacidad, precio, dia, mes, anio);
+        raiz = insertar(raiz, nuevoNodo);
+        cout << "Viaje registrado con ID: " << id << endl;
+    }
+
+    void buscarViaje() {
+        string id;
+        cout << "Ingrese el identificador del viaje: ";
+        getline(cin, id);
+        NodoAVL* viaje = buscar(raiz, id);
+        if (viaje) {
+            cout << "ID: " << viaje->id << ", Embarcación: " << viaje->nombreEmbarcacion << ", Destino: " << viaje->destino << ", Fecha: " << viaje->dia << "/" << viaje->mes << "/" << viaje->anio << ", Precio: " << fixed << setprecision(2) << viaje->precio << ", Capacidad: " << viaje->capacidad << endl;
+        } else {
+            cout << "Viaje no encontrado." << endl;
+        }
+    }
+
+    void listarViajes() {
+        enOrden(raiz);
+    }
+
+    void eliminarViaje() {
+        string id;
+        cout << "Ingrese el identificador del viaje a eliminar: ";
+        getline(cin, id);
+        raiz = eliminarNodo(raiz, id);
+        cout << "Viaje eliminado." << endl;
+    }
+
+    void registrarPasajero() {
+        string id, nombrePasajero;
+        cout << "Ingrese el identificador del viaje: ";
+        getline(cin, id);
+        NodoAVL* viaje = buscar(raiz, id);
+        if (viaje) {
+            cout << "Ingrese el nombre del pasajero: ";
+            getline(cin, nombrePasajero);
+            if (viaje->pasajeros.size() >= viaje->capacidad) {
+                cout << "La embarcación ha alcanzado su capacidad máxima de pasajeros." << endl;
+            } else {
+                viaje->pasajeros.push({nombrePasajero});
+                cout << "Pasajero registrado." << endl;
+            }
+        } else {
+            cout << "Viaje no encontrado." << endl;
+        }
+    }
+
+    void listarPasajeros() {
+        string id;
+        cout << "Ingrese el identificador del viaje: ";
+        getline(cin, id);
+        NodoAVL* viaje = buscar(raiz, id);
+        if (viaje) {
+            cout << "Lista de pasajeros para el viaje " << id << ":" << endl;
+            queue<Pasajero> temp = viaje->pasajeros;
+            while (!temp.empty()) {
+                cout << "- " << temp.front().nombre << endl;
+                temp.pop();
+            }
+        } else {
+            cout << "Viaje no encontrado." << endl;
+        }
+    }
+};
+
+int main() {
+    ArbolAVL arbolAVL;
+    int opcion;
+
+    do {
+        cout << "\nMenú de opciones:\n";
+        cout << "1. Registrar viaje\n";
+        cout << "2. Buscar viaje\n";
+        cout << "3. Listar viajes\n";
+        cout << "4. Eliminar viaje\n";
+        cout << "5. Registrar pasajero\n";
+        cout << "6. Listar pasajeros\n";
+        cout << "7. Salir\n";
+        cout << "Seleccione una opción: ";
+        cin >> opcion;
+        cin.ignore(); 
+
+        switch (opcion) {
+            case 1:
+                arbolAVL.registrarViaje();
+                break;
+            case 2:
+                arbolAVL.buscarViaje();
+                break;
+            case 3:
+                arbolAVL.listarViajes();
+                break;
+            case 4:
+                arbolAVL.eliminarViaje();
+                break;
+            case 5:
+                arbolAVL.registrarPasajero();
+                break;
+            case 6:
+                arbolAVL.listarPasajeros();
+                break;
+            case 7:
+                cout << "Saliendo..." << endl;
+                break;
+            default:
+                cout << "Opción inválida." << endl;
+        }
+    } while (opcion != 7);
+
+    return 0;
+}
