@@ -1,9 +1,10 @@
 #include <iostream>
 #include <string>
-
+#include <queue> 
+#include <iomanip> 
 
 using namespace std;
-
+ 
 
 struct Pasajero {
     string nombre;
@@ -49,7 +50,7 @@ private:
         y->altura = max(altura(y->izquierda), altura(y->derecha)) + 1;
         x->altura = max(altura(x->izquierda), altura(x->derecha)) + 1;
 
-        return;
+        return x;
     }
 
     NodoAVL* rotacionIzquierda(NodoAVL* x) {
@@ -62,7 +63,7 @@ private:
         x->altura = max(altura(x->izquierda), altura(x->derecha)) + 1;
         y->altura = max(altura(y->izquierda), altura(y->derecha)) + 1;
 
-        return;
+        return y;
     }
 
     NodoAVL* insertar(NodoAVL* nodo, NodoAVL* nuevoNodo) {
@@ -95,7 +96,7 @@ private:
             return rotacionIzquierda(nodo);
         }
 
-        return;
+        return nodo;
     }
 
     NodoAVL* nodoMenorValor(NodoAVL* nodo) {
@@ -153,11 +154,11 @@ private:
         return raiz;
     }
 
-    void enOrden(NodoAVL* raiz) {
+    void inOrden(NodoAVL* raiz) {
         if (raiz != NULL) {
-            enOrden(raiz->izquierda);
+            inOrden(raiz->izquierda);
             cout << "ID: " << raiz->id << ", Embarcación: " << raiz->nombreEmbarcacion << ", Destino: " << raiz->destino << ", Fecha: " << raiz->dia << "/" << raiz->mes << "/" << raiz->anio << ", Precio: " << fixed << setprecision(2) << raiz->precio << ", Capacidad: " << raiz->capacidad << endl;
-            enOrden(raiz->derecha);
+            inOrden(raiz->derecha);
         }
     }
 
@@ -221,7 +222,7 @@ public:
     }
 
     void listarViajes() {
-        enOrden(raiz);
+        inOrden(raiz);
     }
 
     void eliminarViaje() {
