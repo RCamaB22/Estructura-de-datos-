@@ -1,6 +1,7 @@
 ruben camacho, pedro manyoma.
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <stdlib.h>
 
 using namespace std;
@@ -13,16 +14,18 @@ struct Estudiante {
     char nombre[150];
     Estudiante *izq;
     Estudiante *derec;
-} *raiz = NULL, *aux = NULL, *aux2 = NULL;
+} *raiz = NULL;
 
 void registro();
 void mostrar();
 void contarGenero(int &masculino, int &femenino, int &no_responde);
+void contarGeneroRec(Estudiante *root, int &masculino, int &femenino, int &no_responde);
 void Inorder(Estudiante *root);
 void Preorder(Estudiante *root);
 void Postorder(Estudiante *root);
 void eliminar(unsigned long long codigo);
 Estudiante* eliminarNodo(Estudiante* root, unsigned long long codigo);
+Estudiante* minValorNodo(Estudiante* node);
 
 int main() {
     system("cls");
@@ -58,12 +61,49 @@ int main() {
                         system("cls");
                         break;
                     }
-            case 5: cout << "Configuracion (aun no implementado)" << endl; system("cls"); break;
+            case 5: cout << "Configuracion (aun no implementado)" << endl; system("pause"); system("cls"); break;
             case 6: cout << "Adios" << endl; break;
-            default: cout << "Opcion invalida" << endl;
+            default: cout << "Opcion invalida" << endl; system("pause"); system("cls"); break;
         }
     } while (opc != 6);
     return 0;
+}
+
+void registro() {
+    Estudiante *nuevo = new Estudiante;
+    cout << "Ingrese el código del estudiante: ";
+    cin >> nuevo->codigo;
+    cout << "Ingrese la fecha de nacimiento del estudiante (AAAAMMDD): ";
+    cin >> nuevo->fecha;
+    cout << "Ingrese el documento del estudiante: ";
+    cin >> nuevo->doc;
+    cout << "Ingrese el género del estudiante (1: Masculino, 2: Femenino, 3: No responder): ";
+    cin >> nuevo->genero;
+    cin.ignore();
+    cout << "Ingrese el nombre (completo) del estudiante: ";
+    cin.getline(nuevo->nombre, 150);
+    nuevo->izq = nuevo->derec = NULL;
+
+    if (raiz == NULL) {
+        raiz = nuevo;
+    } else {
+        Estudiante *padre = NULL, *actual = raiz;
+        while (actual != NULL) {
+            padre = actual;
+            if (nuevo->codigo < actual->codigo) {
+                actual = actual->izq;
+            } else {
+                actual = actual->derec;
+            }
+        }
+        if (nuevo->codigo < padre->codigo) {
+            padre->izq = nuevo;
+        } else {
+            padre->derec = nuevo;
+        }
+    }
+    system("pause");
+    system("cls");
 }
 
 void mostrar() {
@@ -118,41 +158,11 @@ void Postorder(Estudiante *root) {
     }
 }
 
-void registro() {
-    Estudiante *nuevo = new Estudiante;
-    cout << "Ingrese el código del estudiante: ";
-    cin >> nuevo->codigo;
-    cout << "Ingrese la fecha de nacimiento del estudiante (AAAAMMDD): ";
-    cin >> nuevo->fecha;
-    cout << "Ingrese el documento del estudiante: ";
-    cin >> nuevo->doc;
-    cout << "Ingrese el género del estudiante (1: Masculino, 2: Femenino, 3: No responder): ";
-    cin >> nuevo->genero;
-    cin.ignore();
-    cout << "Ingrese el nombre (completo) del estudiante: ";
-    cin.getline(nuevo->nombre, 150);
-    nuevo->izq = nuevo->derec = NULL;
-
-    if (raiz == NULL) {
-        raiz = nuevo;
-    } else {
-        Estudiante *padre = NULL, *actual = raiz;
-        while (actual != NULL) {
-            padre = actual;
-            if (nuevo->codigo < actual->codigo) {
-                actual = actual->izq;
-            } else {
-                actual = actual->derec;
-            }
-        }
-        if (nuevo->codigo < padre->codigo) {
-            padre->izq = nuevo;
-        } else {
-            padre->derec = nuevo;
-        }
-    }
-    system("pause");
-    system("cls");
+Estudiante* minValorNodo(Estudiante* node) {
+    Estudiante* actual = node;
+    while (actual && actual->izq != NULL)
+        actual = actual->izq;
+    return actual;
 }
 
 Estudiante* eliminarNodo(Estudiante* root, unsigned long long codigo) {
@@ -180,5 +190,5 @@ Estudiante* eliminarNodo(Estudiante* root, unsigned long long codigo) {
         root->genero = temp->genero;
         root->derec = eliminarNodo(root->derec, temp->codigo);
     }
-    return;
+    return root;
 }
